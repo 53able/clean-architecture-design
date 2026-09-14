@@ -1,0 +1,13 @@
+{
+  "components": [
+    {"name": "domain", "layer": "domain-policy"},
+    {"name": "use-cases", "layer": "application-policy"},
+    {"name": "http-adapter", "layer": "interface-adapter"},
+    {"name": "database-driver", "layer": "framework-driver"}
+  ],
+  "dependencies": [
+    {"from": "http-adapter", "to": "use-cases"},
+    {"from": "use-cases", "to": "domain"},
+    {"from": "database-driver", "to": "use-cases"}
+  ]
+}
