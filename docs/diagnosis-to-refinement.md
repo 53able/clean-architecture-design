@@ -1,79 +1,81 @@
-# 診断から段階的リファインまで
+# From Diagnosis to Incremental Refinement
 
-このスキルは、完成形のアーキテクチャを先に置かない。既存の振る舞いを保ちながら、一つのユースケースから改善する。
+> [English](diagnosis-to-refinement.md) | [日本語](ja-JP/diagnosis-to-refinement.md)
 
-## 1. 観察する
+This skill does not prescribe a target architecture first. It improves one use case at a time while preserving existing behavior.
 
-次を事実として集める。
+## 1. Observe
 
-- actorとuse case
-- 入力、出力、外部I/O
-- 変更理由、変更頻度、同時に変わるモジュール
-- import、参照、公開API、フレームワーク型、DBモデル
-- 可変状態の所有者、更新者、並行更新時の規則
-- 現在のテスト、ビルド、デプロイ、所有チーム
+Record the following as facts:
 
-フォルダ名やクラス数だけで責務を決めない。実際の依存と変更の広がりを見て分類する。
+- actors and use cases
+- inputs, outputs, and external I/O
+- reasons and frequency of change, plus modules that change together
+- imports, references, public APIs, framework types, and database models
+- mutable-state owner, writers, and rules for concurrent updates
+- current tests, builds, deployments, and owning teams
 
-## 2. 境界候補を比較する
+Do not infer responsibility from folder or class names alone. Classify code from its actual dependencies and change impact.
 
-外部詳細が内側へ流入している、循環依存がある、異なるactorの規則が同居している、といった観察から境界候補を選ぶ。
+## 2. Compare boundary candidates
 
-候補は、いきなりserviceにしない。必要な独立性に応じて、弱いものから比較する。
+Use observed facts to identify candidates: external details leaking inward, dependency cycles, or rules for different actors living together.
 
-1. 境界なし
-2. 同一プロセス内のsource-level分離
-3. deployable component
-4. local processまたはnetwork service
+Do not begin with a service. Compare increasingly strong choices instead:
 
-各候補について、得られる変更・テスト・リリースの独立性と、追加する契約、運用、互換性、通信、共有データのコストを並べる。独立便益を説明できないなら、境界を増やさない。
+1. no new boundary
+2. source-level separation in the same process
+3. a deployable component
+4. a local process or network service
 
-## 3. portとadapterを最小限に置く
+For each option, compare the resulting independence of change, test, and release against the costs of new contracts, operations, compatibility management, communication, and shared data. Do not add a boundary without an explainable independence benefit.
 
-分離する場合は、外部実装側ではなく利用側の高水準policyがportを所有する。
+## 3. Add the smallest useful port and adapter
 
-- inputはHTTP requestやCLI引数をそのまま渡さない
-- outputはORM entityやHTTP responseをそのまま返さない
-- Gatewayは汎用CRUDではなく、use caseが必要とする操作を表す
-- adapterは外部形式と内側のモデルを変換する
-- composition rootは具体実装、設定、DIを集める
+When separation is justified, the high-level policy that uses a port owns it.
 
-interfaceが一つの実装のメソッドを写しているだけなら、抽象化を再検討する。
+- Do not pass HTTP requests or CLI arguments directly as use-case input.
+- Do not return ORM entities or HTTP responses directly as use-case output.
+- Express a gateway in the operations required by the use case, not generic CRUD.
+- Keep translations between external and inner models in adapters.
+- Gather concrete implementations, configuration, and DI in the composition root.
 
-## 4. 一つのユースケースから移行する
+Reconsider an interface that merely copies the methods of one implementation.
 
-改善は小さく進める。
+## 4. Refine one use case
 
-1. 対象ユースケースの現在の振る舞いをテストで固定する
-2. handler/controllerからユースケースを呼ぶ薄い入口を抽出する
-3. DB、SDK、HTTP、ORMへの参照を一つずつportの背後へ移す
-4. 変換をadapterへ、結線をcomposition rootへ移す
-5. 依存方向、循環依存、境界横断の型を検査する
+Make changes in small steps.
 
-対象を広げる前に、変更対象と再検証範囲が本当に狭くなったかを確認する。
+1. Fix the current behavior of the target use case with tests.
+2. Extract a thin entry point that calls the use case from the handler or controller.
+3. Move references to databases, SDKs, HTTP, and ORMs behind ports one at a time.
+4. Move translation to adapters and wiring to the composition root.
+5. Check dependency direction, cycles, and types that cross the boundary.
 
-## 5. 反例を探す
+Before widening the scope, verify that the change and retest surface actually became smaller.
 
-テスト成功は設計の正しさを証明しない。設計主張が誤っている反例を探す。
+## 5. Look for counterexamples
 
-少なくとも、正常系、不正入力、境界値、外部I/O失敗、並行更新、契約違反を確認する。内側のpolicyが外部I/Oなしにテストできるか、禁止依存が増えていないか、外部の詳細型が境界を越えていないかを検査する。
+A passing test does not prove a design correct. Look for examples that contradict its claims.
 
-## 実行例
+At minimum, consider the happy path, invalid input, boundary values, external-I/O failure, concurrent updates, and contract violations. Check whether inner policy can be tested without external I/O, whether forbidden dependencies increased, and whether external detail types cross a boundary.
+
+## Example request
 
 ```text
-このHTTP handlerからDBへの直接アクセスを、port/adaptorで段階的に分離する計画を作って。
+Plan an incremental separation of direct database access from this HTTP handler using ports and adapters.
 
-対象ユースケース:
-保持する振る舞い:
-現在の入力と出力:
-外部I/O:
-現在のテスト:
+Target use case:
+Behavior to preserve:
+Current inputs and outputs:
+External I/O:
+Current tests:
 
-観察・推論・最小変更案・検証計画を分けて示し、
-独立便益を説明できない境界は提案しないでください。
+Separate observations, inferences, the minimum change, and a verification plan.
+Do not propose a boundary whose independence benefit cannot be explained.
 ```
 
-## 次に読む
+## Next
 
-- [なぜこのスキルが必要か](why-clean-architecture-design.md)
-- [境界を作らない判断](when-not-to-use.md)
+- [Why Clean Architecture Design](why-clean-architecture-design.md)
+- [When Not to Add a Boundary](when-not-to-use.md)

@@ -1,46 +1,49 @@
 # Clean Architecture Design
 
-Clean Architectureの原則を使い、既存コードの設計診断、境界選定、段階的リファイン、依存境界レビューを行うエージェントスキルです。
+> [English](README.md) | [日本語](docs/ja-JP/README.md)
 
-## インストール
+An agent skill for diagnosing existing software design, selecting boundaries, planning incremental refinements, and reviewing dependency boundaries through Clean Architecture principles.
+
+## Install
 
 ```bash
 npx skills add 53able/clean-architecture-design
 ```
 
-## できること
+## What it helps with
 
-- actorとuse caseを起点に、変更理由とpolicyのlevelを整理する
-- 内側から外側への依存、循環依存、外部詳細の流入を検査する
-- source-level分離、deployable component、process/serviceを比較し、必要最小の境界を選ぶ
-- port/adaptorとcomposition rootを設計する
-- 可変状態の所有、並行更新、回復規則を境界として検討する
-- 一つのuse caseから安全に段階的リファインする
-- 反例を探すテストで設計主張と境界を検証する
+- Map actors and use cases to their reasons for change and policy levels.
+- Inspect inward dependency violations, dependency cycles, and leaked external details.
+- Compare source-level separation, deployable components, and processes or services; choose the smallest boundary that provides the required independence.
+- Design ports, adapters, and a composition root.
+- Treat mutable-state ownership, concurrent updates, and recovery rules as boundary concerns.
+- Refine one use case safely at a time.
+- Test design claims and boundaries by looking for counterexamples.
 
-## 利用例
+## Examples
 
 ```text
-このリポジトリの注文処理を診断し、Clean Architectureの観点から最小の改善案を作成して。
+Diagnose the order-processing code in this repository and propose the smallest improvement using Clean Architecture principles.
 ```
 
 ```text
-このHTTP handlerからDBへの直接アクセスを、port/adaptorで段階的に分離する計画を作って。
+Plan an incremental separation of direct database access from this HTTP handler using ports and adapters.
 ```
 
-## 読む順番
+## Guides
 
-- [なぜこのスキルが必要か](docs/why-clean-architecture-design.md): 変更コストと境界選定を中心に、このスキルの目的を説明します。
-- [診断から段階的リファインまで](docs/diagnosis-to-refinement.md): 観察、最小境界、port/adaptor、検証までの進め方です。
-- [境界を作らない判断](docs/when-not-to-use.md): 過剰な抽象化や安易なservice分割を避ける基準です。
+- [Why Clean Architecture Design](docs/why-clean-architecture-design.md): The problem the skill addresses and the value of choosing boundaries from change cost.
+- [From Diagnosis to Incremental Refinement](docs/diagnosis-to-refinement.md): A workflow for observation, minimum boundaries, ports and adapters, and verification.
+- [When Not to Add a Boundary](docs/when-not-to-use.md): Guardrails against needless abstraction and premature service decomposition.
 
-## 構成
+## Repository layout
 
-- `SKILL.md`: 実行手順
-- `assets/`: 診断、境界決定、移行計画、再評価のテンプレート
-- `references/`: 設計・境界・段階的リファインの規則
-- `scripts/`: 依存方向と循環依存を検査するスクリプト
+- `SKILL.md`: workflow instructions
+- `assets/`: templates for diagnosis, boundary decisions, migration plans, and reassessment
+- `references/`: rules for design, boundaries, and incremental refinement
+- `scripts/`: a script that checks dependency direction and cycles
+- `docs/ja-JP/`: Japanese documentation
 
-## ライセンス
+## License
 
 [MIT License](LICENSE)

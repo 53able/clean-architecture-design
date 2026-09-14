@@ -1,53 +1,55 @@
-# 境界を作らない判断
+# When Not to Add a Boundary
 
-Clean Architectureは、詳細を隔離するための考え方であり、抽象化や分割を増やす義務ではない。新しい境界は、変更・テスト・開発・リリースの独立性という便益が、追加コストを上回るときだけ導入する。
+> [English](when-not-to-use.md) | [日本語](ja-JP/when-not-to-use.md)
 
-## 境界を増やさない兆候
+Clean Architecture is a way to isolate details; it is not an obligation to add abstractions or split systems. Add a boundary only when its benefit to independent change, testing, development, or release exceeds its cost.
 
-次の状況では、まず現状を維持するか、より弱い境界を選ぶ。
+## Signals not to add a boundary
 
-- 分けたcomponentが常に同じチーム、同じリリース、同じデータ変更を必要とする
-- portがSQL、ORM、SDK、HTTPの型やメソッドをほぼそのまま並べている
-- interfaceが一つの実装を抽象化しただけで、利用側の必要を表していない
-- DTOが外側のデータ構造を写しているだけで、変換の意味がない
-- 分離後のほうが変更対象、再検証範囲、チーム調整が広がる
-- 可変状態の所有者、更新API、並行更新時の規則が決まっていない
+Prefer the existing design or a weaker boundary when:
 
-この場合は、抽象化を削る、対象ユースケースを絞る、または観察へ戻る。
+- The separated components always require the same team, release, and data change.
+- A port nearly reproduces SQL, ORM, SDK, or HTTP types and methods.
+- An interface abstracts one implementation rather than the caller’s need.
+- A DTO merely copies an outer data structure with no meaningful translation.
+- Separation broadens the set of code to change, retest, or coordinate.
+- The owner, update API, or concurrent-update rules for mutable state are unknown.
 
-## service分割を急がない
+In these cases, remove abstractions, narrow the use case, or return to observation.
 
-network serviceは強い境界だが、通信失敗、監視、契約管理、共有データ、デプロイ順、分散トランザクション、運用責任を持ち込む。serviceを分けたことだけで、内部の依存方向や責務混在は解決しない。
+## Do not rush into service decomposition
 
-次を具体的に説明できないなら、service分割を提案しない。
+A network service is a strong boundary, but it introduces communication failure, monitoring, contract management, shared data, deployment order, distributed transactions, and operational responsibility. Splitting a service does not by itself correct inward dependencies or mixed responsibilities inside it.
 
-- 何を独立して開発、テスト、リリース、運用したいのか
-- 共有データと同時デプロイをどう避けるのか
-- 通信失敗と契約不一致をどう扱うのか
-- 既存のsource-level分離やcomponent化では足りない理由は何か
+Do not propose service decomposition without explaining:
 
-## 分割を停止する条件
+- what must become independently developed, tested, released, or operated
+- how shared data and coordinated deployments will be avoided
+- how communication failure and contract mismatch will be handled
+- why source-level separation or a component is insufficient
 
-段階的リファイン中でも、以下のときは次のユースケースへ進まない。
+## Stop refinement when
 
-- 振る舞いをテストで固定できない
-- 新しい境界が実装詳細を再掲している
-- 状態所有者が曖昧になった
-- 禁止依存や循環依存が増えた
-- 追加した境界の独立便益を説明できない
+Do not proceed to another use case when:
 
-停止は失敗ではない。不要な抽象化と物理分割を増やす前に、設計上の仮説を見直すための判断である。
+- current behavior cannot be fixed with tests
+- the new boundary repeats implementation details
+- mutable-state ownership has become ambiguous
+- forbidden dependencies or cycles increase
+- the added boundary has no explainable independence benefit
 
-## このスキルに向かない依頼
+Stopping is not failure. It is a decision to revisit the design hypothesis before adding needless abstraction or physical distribution.
 
-- 命名・整形だけを直したい
-- パフォーマンスだけを測りたい
-- フレームワーク固有APIだけを調べたい
-- 根拠なしに既存コードを全面リライトしたい
+## Requests this skill does not fit
 
-これらは別の目的と検証方法を持つ。設計改善として扱うなら、最初に「どの変更を安全にし、どの振る舞いを守るか」を定める。
+- naming or formatting only
+- performance measurement only
+- framework-specific API research only
+- a wholesale rewrite without evidence
 
-## 次に読む
+These have different goals and verification methods. To treat work as design improvement, first state which change must be made safer and which behavior must remain true.
 
-- [なぜこのスキルが必要か](why-clean-architecture-design.md)
-- [診断から段階的リファインまで](diagnosis-to-refinement.md)
+## Next
+
+- [Why Clean Architecture Design](why-clean-architecture-design.md)
+- [From Diagnosis to Incremental Refinement](diagnosis-to-refinement.md)

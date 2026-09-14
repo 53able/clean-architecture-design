@@ -1,39 +1,72 @@
-# なぜこのスキルが必要か
+# Why Clean Architecture Design
 
-Clean Architectureは、フォルダを四層に分けたり、interfaceを増やしたりするためのテンプレートではない。目的は、要求変更が来たときに、無関係な詳細まで巻き込まずに変更・テスト・リリースできる構造を作ることにある。
+> [English](why-clean-architecture-design.md) | [日本語](ja-JP/why-clean-architecture-design.md)
 
-既存コードでは、次の問いに原則名だけで答えるのは難しい。
+Clean Architecture is not a template for arranging folders into four layers or multiplying interfaces. It is a way to decide which policies must remain stable and which details should stay replaceable, so that software can absorb change.
 
-- Repositoryやportは本当に必要か
-- DBやHTTPの型をどこまで隔離するか
-- package、component、process、serviceのどの境界が必要か
-- 分割した結果、かえって変更コストが増えていないか
+Applying that idea to an existing codebase is difficult. Principles alone do not answer questions such as “Should we extract a repository?”, “Do we need an interface?”, or “Should this become a service?”
 
-`clean-architecture-design`は、この判断を既存コードの診断と段階的な改善計画へ落とし込むためのスキルである。
+`clean-architecture-design` turns those questions into a sequence of observations about change reasons, use cases, dependencies, state, and verification.
 
-## 抽象化を増やす前に、変更理由を確認する
+## Stop before adding abstractions
 
-設計改善では、`controller`、`interactor`、`presenter`、`repository`を全機能に置きたくなる。しかし、独立して変わる理由がなければ、その分割は型と経路を増やすだけになる。
+Design work can easily start with attractive structure: a `controller`, `interactor`, `presenter`, and `repository` for every feature. Without an independently changing reason, that structure only adds types and hops.
 
-このスキルは最初に、actor、use case、保持する振る舞い、外部I/O、現在のテストを確認する。同じ理由で変わる方針をまとめ、異なる理由で変わるものだけを境界候補にする。
+The skill starts by identifying the actor, use case, preserved behavior, external I/O, and current tests. It groups policies that change for the same reason and treats only differently changing concerns as possible boundaries. A port or adapter is proposed only when it isolates a concrete change or external dependency.
 
-したがって、スキルの目的は「Clean Architectureらしい構造」を作ることではない。変更の波及を減らす便益を説明できる場合だけ、必要な境界を導入することだ。
+The goal is not to make a codebase look like Clean Architecture. It is to keep a small change from spreading into unrelated UI, database, framework, or coordination work.
 
-## 詳細を禁止せず、方針を守る
+## Choose boundaries from reasons for change
 
-DB、Web、フレームワーク、SDKは多くのソフトウェアに必要である。問題は、それらの型や都合がユースケースやドメイン規則に直接流れ込むことにある。
+Technology-oriented folders can hide a system’s business boundaries.
 
-分離が必要な場合、内側の高水準policyが必要とする語彙でportを定義し、外側のadapterがDB、HTTP、SDK、表示形式との変換を担う。具体実装と設定はcomposition rootで結線する。
+```text
+controllers/
+services/
+repositories/
+```
 
-これにより、外部システムを実際に使いながら、ユースケースの検証を外部I/Oから切り離せる範囲を増やせる。
+They show technical roles, but not use cases such as confirming an order, reviewing a refund, or issuing an invoice. When rules for different users or departments live in the same `service`, the likely impact of a change is difficult to see.
 
-## 使わないほうがよい場合
+The skill maps actors to use cases first. It then groups policies by shared reasons for change and considers boundaries only where those reasons differ. This prevents the technical layer structure from being fixed before real change pressure is understood.
 
-このスキルは、単なる命名変更、整形、パフォーマンス測定だけには向かない。また、変更理由や守るべき振る舞いを確かめずに全面リライトを正当化するためにも使わない。
+For example, a direct database call from an HTTP handler does not automatically require “the Repository pattern.” The skill traces the use case’s input, rules, output, and external I/O before deciding whether a port owned by the inner policy is useful.
 
-設計を変える対象があるときに使う。対象が曖昧なら、先に一つのユースケースと変更要求を定める。
+## Treat details as details, not as forbidden technology
 
-## 次に読む
+Clean Architecture does not ban databases or web frameworks. They are necessary details in many systems. The risk is allowing their types and constraints to define the use case or domain rules.
 
-- [診断から段階的リファインまで](diagnosis-to-refinement.md)
-- [境界を作らない判断](when-not-to-use.md)
+The skill looks for cases such as these:
+
+- A use case accepts ORM entities or HTTP requests directly.
+- Domain code refers to a cloud SDK or framework type.
+- A controller bypasses a use case and calls persistence directly.
+- Inner policy depends on an interface defined by the outer implementation.
+
+When separation is justified, the inner use case defines a port in its own vocabulary and an outer adapter implements it. Concrete implementations, configuration, and dependency injection belong in the composition root. This lets a system use external services in production while increasing the portion of use-case behavior that can be verified without starting them.
+
+## Avoid boundaries that are stronger than necessary
+
+A boundary is not automatically a package, process, or microservice. Stronger boundaries can provide more isolation, but they also add communication failure, shared-data, compatibility, deployment, observability, and operational costs.
+
+The skill compares the smallest viable options:
+
+- source-level separation in one process
+- a deployable component
+- a local process
+- a network service
+
+If independent development, testing, or release benefits cannot be explained, it keeps the existing boundary. It does not justify service decomposition merely by invoking Clean Architecture.
+
+## Make design claims testable
+
+A design review should not end with a tidy diagram. The skill begins with one use case, fixes current behavior with tests, extracts a thin entry point, moves external I/O behind ports one dependency at a time, and then checks dependency direction, cycles, boundary-crossing types, external-I/O failures, and concurrent updates.
+
+It also stops refinement when a port copies implementation details, when the changed or retested surface expands, when mutable-state ownership becomes unclear, or when the new boundary has no explainable independence benefit.
+
+Clean Architecture is not knowledge for selecting the “correct” folder layout. It is a way to locate where the structure resists change and introduce only the boundaries that resolve that resistance.
+
+## Next
+
+- [From Diagnosis to Incremental Refinement](diagnosis-to-refinement.md)
+- [When Not to Add a Boundary](when-not-to-use.md)
